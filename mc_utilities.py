@@ -57,7 +57,58 @@ class McApiBuilder(object):
     def __init__(self, building_name):
         self.name = building_name
         self.build_steps = []
+        self.anchor_corner = None
         
+    def __init__(self, building_name, anchor_corner):
+        self.name = building_name
+        self.build_steps = []
+        self.anchor_corner = anchor_corner
+        
+    def _get_start_idx(self, pos_a, pos_b, dim):
+        start_idx, stop_idx = None, None
+        
+        if dim == 0:
+            if pos_a.x < pos_b.x:
+                start_idx = pos_a.x; stop_idx = pos_b.x
+            else:
+                start_idx = pos_b.x; stop_idx = pos_a.x
+        
+        elif dim == 1:
+            if pos_a.y < pos_b.y:
+                start_idx = pos_a.y; stop_idx = pos_b.y
+            else:
+                start_idx = pos_b.y; stop_idx = pos_a.y
+                
+        else:
+            if pos_a.z < pos_b.z:
+                start_idx = pos_a.z; stop_idx = pos_b.z
+            else:
+                start_idx = pos_b.z; stop_idx = pos_a.z
+        
+        # add 1 to stop index to fill in the last square
+        #  otherwise it leaves a gap...
+        return start_idx, stop_idx + 1
+    
+    def _add_blocks_in_line(self, pos_a, pos_b, block_type):
+        
+        if pos_a.x != pos_b.x and (pos_a.y == pos_b.y and pos_a.z == pos_b.z):
+            start_idx, stop_idx = self._get_start_idx(pos_a, pos_b, 0)
+                
+            for x_idx in range(start_idx, stop_idx):
+                self.build_steps.append(McApiSetBlockEvent(x_idx, pos_a.y, pos_a.z, block_type))
+    
+        if pos_a.y != pos_b.y and (pos_a.x == pos_b.x and pos_a.z == pos_b.z):
+            start_idx, stop_idx = self._get_start_idx(pos_a, pos_b, 1)
+            
+            for y_idx in range(start_idx, stop_idx):
+                self.build_steps.append(McApiSetBlockEvent(pos_a.x, y_idx, pos_a.z, block_type))
+            
+        if pos_a.z != pos_b.z and (pos_a.x == pos_b.x and pos_a.y == pos_b.y):
+            start_idx, stop_idx = self._get_start_idx(pos_a, pos_b, 2)
+        
+            for z_idx in range(start_idx, stop_idx):
+                self.build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type))
+            
     def _get_build_events(self):
         return self.build_steps
         

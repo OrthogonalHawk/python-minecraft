@@ -57,11 +57,13 @@ class McApiBuilder(object):
     def __init__(self, building_name):
         self.name = building_name
         self.build_steps = []
+        self.final_build_steps = []
         self.anchor_corner = None
         
     def __init__(self, building_name, anchor_corner):
         self.name = building_name
         self.build_steps = []
+        self.final_build_steps = []
         self.anchor_corner = anchor_corner
         
     def _get_start_stop_idx(self, pos_a, pos_b, dim):
@@ -91,31 +93,56 @@ class McApiBuilder(object):
         #  otherwise it leaves a gap...
         return start_idx, stop_idx + 1
     
-    def _add_blocks_in_line(self, pos_a, pos_b, block_type):
+    def _add_block(self, pos_a, block_type, final_build_steps = False):
+        if not final_build_steps:
+            self.build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, pos_a.z, block_type))
+        else:
+            self.final_build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, pos_a.z, block_type))
+    
+    def _add_blocks_in_line(self, pos_a, pos_b, block_type, final_build_steps = False):
         
         if pos_a.x != pos_b.x and (pos_a.y == pos_b.y and pos_a.z == pos_b.z):
             start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 0)
                 
             for x_idx in range(start_idx, stop_idx):
-                self.build_steps.append(McApiSetBlockEvent(x_idx, pos_a.y, pos_a.z, block_type))
+                if not final_build_steps:
+                    self.build_steps.append(McApiSetBlockEvent(x_idx, pos_a.y, pos_a.z, block_type))
+                else:
+                    self.final_build_steps.append(McApiSetBlockEvent(x_idx, pos_a.y, pos_a.z, block_type))
     
         if pos_a.y != pos_b.y and (pos_a.x == pos_b.x and pos_a.z == pos_b.z):
             start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 1)
             
             for y_idx in range(start_idx, stop_idx):
-                self.build_steps.append(McApiSetBlockEvent(pos_a.x, y_idx, pos_a.z, block_type))
+                if not final_build_steps:
+                    self.build_steps.append(McApiSetBlockEvent(pos_a.x, y_idx, pos_a.z, block_type))
+                else:
+                    self.final_build_steps.append(McApiSetBlockEvent(pos_a.x, y_idx, pos_a.z, block_type))
             
         if pos_a.z != pos_b.z and (pos_a.x == pos_b.x and pos_a.y == pos_b.y):
             start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 2)
         
             for z_idx in range(start_idx, stop_idx):
-                self.build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type))
+                if not final_build_steps:
+                    self.build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type))
+                else:
+                    self.final_build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type))
             
     def _get_build_events(self):
         return self.build_steps
         
+    def _get_final_build_events(self):
+        return self.final_build_steps
+        
     def build(self, mc_reference):
         logging.info("Building %s" % (self.name))
         
+        # add the basic build steps; fine if they occur in any order
         event_runner = McApiEventRunner(self._get_build_events())
         event_runner.run_events(mc_reference, 0)
+        
+        # now add any final build steps; guaranteed to occur last and
+        #  in the order they were added to final_build_steps
+        event_runner = McApiEventRunner(self._get_final_build_events())
+        event_runner.run_events(mc_reference, 0)
+        

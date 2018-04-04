@@ -64,7 +64,9 @@ class McApiBuilder(object):
         self.build_steps = []
         self.anchor_corner = anchor_corner
         
-    def _get_start_idx(self, pos_a, pos_b, dim):
+    def _get_start_stop_idx(self, pos_a, pos_b, dim):
+        """Given two Locations and a dimension in [0,2] sort the corresponding
+            coordinate values and return min, max."""
         start_idx, stop_idx = None, None
         
         if dim == 0:
@@ -92,19 +94,19 @@ class McApiBuilder(object):
     def _add_blocks_in_line(self, pos_a, pos_b, block_type):
         
         if pos_a.x != pos_b.x and (pos_a.y == pos_b.y and pos_a.z == pos_b.z):
-            start_idx, stop_idx = self._get_start_idx(pos_a, pos_b, 0)
+            start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 0)
                 
             for x_idx in range(start_idx, stop_idx):
                 self.build_steps.append(McApiSetBlockEvent(x_idx, pos_a.y, pos_a.z, block_type))
     
         if pos_a.y != pos_b.y and (pos_a.x == pos_b.x and pos_a.z == pos_b.z):
-            start_idx, stop_idx = self._get_start_idx(pos_a, pos_b, 1)
+            start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 1)
             
             for y_idx in range(start_idx, stop_idx):
                 self.build_steps.append(McApiSetBlockEvent(pos_a.x, y_idx, pos_a.z, block_type))
             
         if pos_a.z != pos_b.z and (pos_a.x == pos_b.x and pos_a.y == pos_b.y):
-            start_idx, stop_idx = self._get_start_idx(pos_a, pos_b, 2)
+            start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 2)
         
             for z_idx in range(start_idx, stop_idx):
                 self.build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type))

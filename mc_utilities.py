@@ -2,8 +2,8 @@ import time
 import logging
 
 class Location(object):
-
-    def __init__(self, x, y, z, name):
+        
+    def __init__(self, x, y, z, name="unknown"):
         self.x = x
         self.y = y
         self.z = z
@@ -127,7 +127,22 @@ class McApiBuilder(object):
                     self.build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type))
                 else:
                     self.final_build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type))
-            
+    
+    def _add_blocks_in_cubeoid(self, pos_a, pos_b, block_type, final_build_steps = False):
+        """Alternate function to mcpi.minecraft setBlocks; allows the base class to track all
+            blocks added for a structure."""
+        x_start_idx, x_stop_idx = self._get_start_stop_idx(pos_a, pos_b, 0)
+        y_start_idx, y_stop_idx = self._get_start_stop_idx(pos_a, pos_b, 1)
+        z_start_idx, z_stop_idx = self._get_start_stop_idx(pos_a, pos_b, 2)
+        
+        for x_idx in range(x_start_idx, x_stop_idx):
+            for y_idx in range(y_start_idx, y_stop_idx):
+                for z_idx in range(z_start_idx, z_stop_idx):
+                    if not final_build_steps:
+                        self.build_steps.append(McApiSetBlockEvent(x_idx, y_idx, z_idx, block_type))
+                    else:
+                        self.final_build_steps.append(McApiSetBlockEvent(x_idx, y_idx, z_idx, block_type))
+        
     def _get_build_events(self):
         return self.build_steps
         

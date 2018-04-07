@@ -59,6 +59,12 @@ class BasicFarm(mc_utilities.McApiBuilder):
         self._add_block(gate_01, constants.McBlockType.OAK_FENCE_GATE, True)
         self._add_block(gate_02, constants.McBlockType.OAK_FENCE_GATE, True)
         
+        # add torches at each corner
+        self._add_block(mc_utilities.Location(corner_01.x, corner_01.y + 1, corner_01.z), constants.McBlockType.TORCH, True)
+        self._add_block(mc_utilities.Location(corner_02.x, corner_02.y + 1, corner_02.z), constants.McBlockType.TORCH, True)
+        self._add_block(mc_utilities.Location(corner_03.x, corner_03.y + 1, corner_03.z), constants.McBlockType.TORCH, True)
+        self._add_block(mc_utilities.Location(corner_04.x, corner_04.y + 1, corner_04.z), constants.McBlockType.TORCH, True)
+        
         # update corners to that they are now under the fence
         corner_01.y -= 1; corner_02.y -= 1; corner_03.y -= 1; corner_04.y -= 1
         self._add_blocks_in_line(corner_01, corner_02, constants.McBlockType.GRASS)
@@ -77,7 +83,7 @@ class BasicFarm(mc_utilities.McApiBuilder):
 class StackedFarm(BasicFarm):
 
     NAME = "StackedFarm"
-    STACK_SPACING = 4
+    STACK_SPACING = 6
     
     def __init__(self, anchor_corner, x_dim, z_dim, num_stacks):
         BasicFarm.__init__(self, anchor_corner, x_dim, z_dim)

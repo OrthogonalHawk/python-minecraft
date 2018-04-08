@@ -90,4 +90,84 @@ class StackedFarm(BasicFarm):
         
         for i in range(num_stacks - 1):
             self._create_farm(mc_utilities.Location(anchor_corner.x, anchor_corner.y + self.STACK_SPACING * (i + 1), anchor_corner.z), x_dim, z_dim)
+
+class StairComponent(mc_utilities.McApiBuilder):
+
+    NAME = "StairComponent"
+
+    def __init__(self, anchor_corner):
+        mc_utilities.McApiBuilder.__init__(self, self.NAME, anchor_corner)
+        self._create_stair_component(anchor_corner)
+        
+    def _create_stair_component(self, anchor_corner):
+    
+        # create the base structure; required so that the stairs blocks line
+        #  up nicely
+        self._add_blocks_in_cubeoid(anchor_corner.get_offset([0, -1, 0]), anchor_corner.get_offset([0, -1, -1]), constants.McBlockType.STONE)
+    
+        # create the stair part
+        self._add_block(anchor_corner, constants.McBlockType.STONE_BRICK_STAIRS, constants.McBlockOrientation.EAST, True)
+        self._add_block(anchor_corner.get_offset([0, 0, -1]), constants.McBlockType.STONE_BRICK_STAIRS, constants.McBlockOrientation.EAST, True)
+        
+        # add a raised flat part
+        self._add_block(anchor_corner.get_offset([1, 0,  0]), constants.McBlockType.STONE)
+        self._add_block(anchor_corner.get_offset([2, 0,  0]), constants.McBlockType.STONE)
+        self._add_block(anchor_corner.get_offset([1, 0, -1]), constants.McBlockType.STONE)
+        self._add_block(anchor_corner.get_offset([2, 0, -1]), constants.McBlockType.STONE)
+        
+class WatchTower(mc_utilities.McApiBuilder):
+
+    NAME = "WatchTower"
+    BASE_TOWER_DIM = 7
+    STAIR_WIDTH = 2
+    TOWER_HEIGHT = 25
+    TOWER_WALL_WIDTH = 1
+    
+    def __init__(self, anchor_corner):
+        mc_utilities.McApiBuilder.__init__(self, self.NAME, anchor_corner)
+        self._create_watch_tower(anchor_corner)
+        
+    def _create_watch_tower(self, anchor_corner):
+    
+        logging.info("Building %s with anchor_corner=(%u, %u, %u)" %
+            (self.NAME, anchor_corner.x, anchor_corner.y, anchor_corner.z))
+        
+        tower_corners = self._get_build_corners(anchor_corner, self.BASE_TOWER_DIM - 1, self.BASE_TOWER_DIM - 1)
+        
+        logging.info("Defined corners: (x,z) (%u, %u), (%u, %u), (%u, %u), (%u, %u)" %
+            (tower_corners[0].x, tower_corners[0].z, tower_corners[1].x, tower_corners[1].z,
+             tower_corners[2].x, tower_corners[2].z, tower_corners[3].x, tower_corners[3].z))
+             
+        # create the outer tower shell
+        for y_idx in range(self.TOWER_HEIGHT):
+            self._add_blocks_in_line(tower_corners[0].get_offset([0, y_idx, 0]), tower_corners[1].get_offset([0, y_idx, 0]), constants.McBlockType.STONE)
+            self._add_blocks_in_line(tower_corners[1].get_offset([0, y_idx, 0]), tower_corners[2].get_offset([0, y_idx, 0]), constants.McBlockType.STONE)
+            self._add_blocks_in_line(tower_corners[2].get_offset([0, y_idx, 0]), tower_corners[3].get_offset([0, y_idx, 0]), constants.McBlockType.STONE)
+            self._add_blocks_in_line(tower_corners[3].get_offset([0, y_idx, 0]), tower_corners[0].get_offset([0, y_idx, 0]), constants.McBlockType.STONE)
+        
+        # create the tower floor
+        self._add_blocks_in_cubeoid(tower_corners[0].get_offset([0, -1, 0]), tower_corners[2].get_offset([0, -1, 0]), constants.McBlockType.STONE)
+        
+        # create the inner column
+        tower_center_at_base = tower_corners[0].get_offset([self.BASE_TOWER_DIM / 2, 0, -(self.BASE_TOWER_DIM / 2) + 1])
+
+        # create the inner staircase. set an initial start position
+        
+        stair_case_block_pos = tower_center_at_base.get_offset([0, -1, 1])
+        logging.info("Staircase start position: %s" % (stair_case_block_pos))
+        
+        
+        
+        next_stair_offset = [ [1, 1, 0], [1, 1, 0], [0, 1, -1], [0, 1, -1], [-1, 1, 0], [-1, 1, 0], [0, 1, 1], [0, 1, 1] ]
+        next_stair_offset_ctr = 1
+        for y_idx in range(self.TOWER_HEIGHT):
             
+            # advance to the next staircase position            
+            stair_case_block_pos.update(next_stair_offset[next_stair_offset_ctr])
+            next_stair_offset_ctr += 1
+            next_stair_offset_ctr %= len(next_stair_offset)
+            
+            logging.info("Adding stairs at %s" % (stair_case_block_pos))
+            
+            #self._add_block(stair_case_block_pos, constants.McBlockType.STONE_BRICK_STAIRS)        
+        

@@ -1,7 +1,8 @@
 import constants
 import copy
-import time
 import logging
+import random
+import time
 
 class Location(object):
         
@@ -93,7 +94,7 @@ class McApiSetBlockEvent(McApiEvent):
                     
 class McApiEventRunner(object):
 
-    ANIMATION_DELAY = 0.1
+    ANIMATION_DELAY = 0.01
     
     def __init__(self, mc_api_events):
         self.events = list(mc_api_events)
@@ -105,6 +106,8 @@ class McApiEventRunner(object):
         
         # run all events
         num_events_run = 0
+        random.shuffle(self.events)
+                
         for event in self.events:
             
             if event.type == McApiEvent.MODIFY_BLOCK:
@@ -136,6 +139,9 @@ class McApiBuilder(object):
         self.build_steps = []
         self.final_build_steps = []
         self.anchor_corner = anchor_corner
+        
+    def __str__(self):
+        return "%s at %s" % (self.NAME, self.anchor_corner)
         
     def _get_build_corners(self, anchor_corner, x_dim, z_dim):
         corners = []
@@ -231,9 +237,9 @@ class McApiBuilder(object):
         
     def _add_build_steps(self, new_build_steps, final_build_steps = False):
         if not final_build_steps:
-            self.build_steps.append(new_build_steps)
+            self.build_steps += copy.deepcopy(new_build_steps)
         else:
-            self.final_build_steps.append(new_build_steps)
+            self.final_build_steps += copy.deepcopy(new_build_steps)
             
     def _get_build_events(self):
         return self.build_steps

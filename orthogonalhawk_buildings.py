@@ -103,13 +103,15 @@ class StairComponent(mc_utilities.McApiBuilder):
     
         logging.info("Creating %s at %s" % (self.NAME, anchor_corner))
         
-        # create the base structure; required so that the stairs blocks line
-        #  up nicely
+        # create the base structure
         self._add_blocks_in_cubeoid(anchor_corner.get_offset([0, -1, 0]), anchor_corner.get_offset([0, -1, -1]), constants.McBlockType.STONE)
     
+        # add a torch
+        self._add_block(anchor_corner.get_offset([1, -1, -1]), constants.McBlockType.TORCH, constants.McTorchOrientation.EAST, True)
+        
         # create the stair part
-        self._add_block(anchor_corner, constants.McBlockType.STONE_BRICK_STAIRS, constants.McBlockOrientation.EAST, True)
-        self._add_block(anchor_corner.get_offset([0, 0, -1]), constants.McBlockType.STONE_BRICK_STAIRS, constants.McBlockOrientation.EAST, True)
+        self._add_block(anchor_corner, constants.McBlockType.STONE_BRICK_STAIRS, constants.McStairOrientation.EAST, True)
+        self._add_block(anchor_corner.get_offset([0, 0, -1]), constants.McBlockType.STONE_BRICK_STAIRS, constants.McStairOrientation.EAST, True)
         
         # add a raised flat part
         self._add_block(anchor_corner.get_offset([1, 0,  0]), constants.McBlockType.STONE)

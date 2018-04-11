@@ -60,37 +60,71 @@ class McApiSetBlockEvent(McApiEvent):
     def update_block_state_from_rotation(self, num_degrees):
         if self.block_id in [constants.McBlockType.STONE_BRICK_STAIRS]:
         
-            if self.block_state == constants.McBlockOrientation.EAST:
+            if self.block_state == constants.McStairOrientation.EAST:
                 if num_degrees == 90:
-                    self.block_state = constants.McBlockOrientation.NORTH
+                    self.block_state = constants.McStairOrientation.NORTH
                 elif num_degrees == 180:
-                    self.block_state = constants.McBlockOrientation.WEST
+                    self.block_state = constants.McStairOrientation.WEST
                 elif num_degrees == 270:
-                    self.block_state = constants.McBlockOrientation.SOUTH
+                    self.block_state = constants.McStairOrientation.SOUTH
         
-            elif self.block_state == constants.McBlockOrientation.WEST:
+            elif self.block_state == constants.McStairOrientation.WEST:
                 if num_degrees == 90:
-                    self.block_state = constants.McBlockOrientation.SOUTH
+                    self.block_state = constants.McStairOrientation.SOUTH
                 elif num_degrees == 180:
-                    self.block_state = constants.McBlockOrientation.EAST
+                    self.block_state = constants.McStairOrientation.EAST
                 elif num_degrees == 270:
-                    self.block_state = constants.McBlockOrientation.NORTH
+                    self.block_state = constants.McStairOrientation.NORTH
                     
-            elif self.block_state == constants.McBlockOrientation.SOUTH:
+            elif self.block_state == constants.McStairOrientation.SOUTH:
                 if num_degrees == 90:
-                    self.block_state = constants.McBlockOrientation.EAST
+                    self.block_state = constants.McStairOrientation.EAST
                 elif num_degrees == 180:
-                    self.block_state = constants.McBlockOrientation.NORTH
+                    self.block_state = constants.McStairOrientation.NORTH
                 elif num_degrees == 270:
-                    self.block_state = constants.McBlockOrientation.WEST
+                    self.block_state = constants.McStairOrientation.WEST
             
-            elif self.block_state == constants.McBlockOrientation.NORTH:
+            elif self.block_state == constants.McStairOrientation.NORTH:
                 if num_degrees == 90:
-                    self.block_state = constants.McBlockOrientation.WEST
+                    self.block_state = constants.McStairOrientation.WEST
                 elif num_degrees == 180:
-                    self.block_state = constants.McBlockOrientation.SOUTH
+                    self.block_state = constants.McStairOrientation.SOUTH
                 elif num_degrees == 270:
-                    self.block_state = constants.McBlockOrientation.EAST
+                    self.block_state = constants.McStairOrientation.EAST
+        
+        elif self.block_id in [constants.McBlockType.TORCH]:
+        
+            if self.block_state == constants.McTorchOrientation.EAST:
+                if num_degrees == 90:
+                    self.block_state = constants.McTorchOrientation.NORTH
+                elif num_degrees == 180:
+                    self.block_state = constants.McTorchOrientation.WEST
+                elif num_degrees == 270:
+                    self.block_state = constants.McTorchOrientation.SOUTH
+        
+            elif self.block_state == constants.McTorchOrientation.WEST:
+                if num_degrees == 90:
+                    self.block_state = constants.McTorchOrientation.SOUTH
+                elif num_degrees == 180:
+                    self.block_state = constants.McTorchOrientation.EAST
+                elif num_degrees == 270:
+                    self.block_state = constants.McTorchOrientation.NORTH
+                    
+            elif self.block_state == constants.McTorchOrientation.SOUTH:
+                if num_degrees == 90:
+                    self.block_state = constants.McTorchOrientation.EAST
+                elif num_degrees == 180:
+                    self.block_state = constants.McTorchOrientation.NORTH
+                elif num_degrees == 270:
+                    self.block_state = constants.McTorchOrientation.WEST
+            
+            elif self.block_state == constants.McTorchOrientation.NORTH:
+                if num_degrees == 90:
+                    self.block_state = constants.McTorchOrientation.WEST
+                elif num_degrees == 180:
+                    self.block_state = constants.McTorchOrientation.SOUTH
+                elif num_degrees == 270:
+                    self.block_state = constants.McTorchOrientation.EAST
                     
 class McApiEventRunner(object):
 

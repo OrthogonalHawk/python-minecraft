@@ -27,6 +27,7 @@ class McBlockType(object):
     FARMLAND = 60
     FLOWING_WATER = 8
     GRASS = 2
+    OAK_DOOR_BLOCK = 64
     OAK_FENCE = 85
     OAK_FENCE_GATE = 107
     STILL_WATER = 9

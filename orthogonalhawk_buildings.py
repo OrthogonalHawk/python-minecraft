@@ -165,7 +165,7 @@ class WatchTower(mc_utilities.McApiBuilder):
     NAME = "WatchTower"
     BASE_TOWER_DIM = 7
     STAIR_WIDTH = 2
-    TOWER_HEIGHT = 20
+    TOWER_HEIGHT = 8
     TOWER_WALL_WIDTH = 1
     
     def __init__(self, anchor_corner):
@@ -204,22 +204,13 @@ class WatchTower(mc_utilities.McApiBuilder):
         self._add_build_steps(spiral_staircase._get_build_events(), False)
         self._add_build_steps(spiral_staircase._get_final_build_events(), True)
         
+        # create the door
+        door_location = tower_corners[0].get_offset([0, 0, -2])
+        self._add_block(door_location, constants.McBlockType.OAK_DOOR_BLOCK, 0, True)
+        self._add_block(door_location.get_offset([0, 1, 0]), constants.McBlockType.OAK_DOOR_BLOCK, 8, True)
+        #self._add_blocks_in_line(door_location, door_location.get_offset([0, 1, 0]), constants.McBlockType.OAK_DOOR_BLOCK)
         
-        #stair_case_block_pos = tower_center_at_base.get_offset([0, -1, 1])
-        #logging.info("Staircase start position: %s" % (stair_case_block_pos))
-        
-        
-        
-        #next_stair_offset = [ [1, 1, 0], [1, 1, 0], [0, 1, -1], [0, 1, -1], [-1, 1, 0], [-1, 1, 0], [0, 1, 1], [0, 1, 1] ]
-        #next_stair_offset_ctr = 1
-        #for y_idx in range(self.TOWER_HEIGHT):
-            
-            # advance to the next staircase position            
-            #stair_case_block_pos.update(next_stair_offset[next_stair_offset_ctr])
-            #next_stair_offset_ctr += 1
-            #next_stair_offset_ctr %= len(next_stair_offset)
-            
-            #logging.info("Adding stairs at %s" % (stair_case_block_pos))
-            
-            #self._add_block(stair_case_block_pos, constants.McBlockType.STONE_BRICK_STAIRS)        
+        # add torches next to the door
+        self._add_block(door_location.get_offset([-1, 1, -1]), constants.McBlockType.TORCH, constants.McTorchOrientation.WEST, True)
+        self._add_block(door_location.get_offset([-1, 1,  1]), constants.McBlockType.TORCH, constants.McTorchOrientation.WEST, True)        
         

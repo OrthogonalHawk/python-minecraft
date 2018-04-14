@@ -226,11 +226,14 @@ class McApiBuilder(object):
             self.final_build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, pos_a.z, block_type, block_state))
     
     def _add_blocks_in_line(self, pos_a, pos_b, block_type, final_build_steps = False):
-        
+        return self._add_blocks_in_dotted_line(pos_a, pos_b, block_type, 1, final_build_steps)
+    
+    def _add_blocks_in_dotted_line(self, pos_a, pos_b, block_type, step, final_build_steps = False):
+    
         if pos_a.x != pos_b.x and (pos_a.y == pos_b.y and pos_a.z == pos_b.z):
             start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 0)
                 
-            for x_idx in range(start_idx, stop_idx):
+            for x_idx in range(start_idx, stop_idx, step):
                 if not final_build_steps:
                     self.build_steps.append(McApiSetBlockEvent(x_idx, pos_a.y, pos_a.z, block_type, self.DEFAULT_BLOCK_STATE))
                 else:
@@ -239,7 +242,7 @@ class McApiBuilder(object):
         if pos_a.y != pos_b.y and (pos_a.x == pos_b.x and pos_a.z == pos_b.z):
             start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 1)
             
-            for y_idx in range(start_idx, stop_idx):
+            for y_idx in range(start_idx, stop_idx, step):
                 if not final_build_steps:
                     self.build_steps.append(McApiSetBlockEvent(pos_a.x, y_idx, pos_a.z, block_type, self.DEFAULT_BLOCK_STATE))
                 else:
@@ -248,12 +251,12 @@ class McApiBuilder(object):
         if pos_a.z != pos_b.z and (pos_a.x == pos_b.x and pos_a.y == pos_b.y):
             start_idx, stop_idx = self._get_start_stop_idx(pos_a, pos_b, 2)
         
-            for z_idx in range(start_idx, stop_idx):
+            for z_idx in range(start_idx, stop_idx, step):
                 if not final_build_steps:
                     self.build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type, self.DEFAULT_BLOCK_STATE))
                 else:
                     self.final_build_steps.append(McApiSetBlockEvent(pos_a.x, pos_a.y, z_idx, block_type, self.DEFAULT_BLOCK_STATE))
-    
+                    
     def _add_blocks_in_cubeoid(self, pos_a, pos_b, block_type, final_build_steps = False):
         """Alternate function to mcpi.minecraft setBlocks; allows the base class to track all
             blocks added for a structure."""

@@ -25,6 +25,7 @@ class McBlockType(object):
     # definitions for the various kinds of MINECRAFT blocks
     AIR = 0
     FARMLAND = 60
+    FIRE = 51
     FLOWING_WATER = 8
     GRASS = 2
     OAK_DOOR_BLOCK = 64

@@ -1,5 +1,7 @@
 import logging
 
+DEFAULT_BLOCK_STATE = 0
+
 class McStairOrientation(object):
 
     EAST = 0

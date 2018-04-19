@@ -231,12 +231,12 @@ class WatchTower(mc_utilities.McApiBuilder):
 
         # now fill in every other block on the next level up
         block_step_size = 2
-        self._add_blocks_in_dotted_line(para_corners[0].get_offset([0, 1, 0]), para_corners[1].get_offset([0, 1, 0]), constants.McBlockType.STONE, block_step_size)
-        self._add_blocks_in_dotted_line(para_corners[1].get_offset([0, 1, 0]), para_corners[2].get_offset([0, 1, 0]), constants.McBlockType.STONE, block_step_size)
-        self._add_blocks_in_dotted_line(para_corners[2].get_offset([0, 1, 0]), para_corners[3].get_offset([0, 1, 0]), constants.McBlockType.STONE, block_step_size)
-        self._add_blocks_in_dotted_line(para_corners[3].get_offset([0, 1, 0]), para_corners[0].get_offset([0, 1, 0]), constants.McBlockType.STONE, block_step_size)
+        self._add_blocks_in_dotted_line(para_corners[0].get_offset([0, 1, 0]), para_corners[1].get_offset([0, 1, 0]), constants.McBlockType.STONE, constants.DEFAULT_BLOCK_STATE, block_step_size)
+        self._add_blocks_in_dotted_line(para_corners[1].get_offset([0, 1, 0]), para_corners[2].get_offset([0, 1, 0]), constants.McBlockType.STONE, constants.DEFAULT_BLOCK_STATE, block_step_size)
+        self._add_blocks_in_dotted_line(para_corners[2].get_offset([0, 1, 0]), para_corners[3].get_offset([0, 1, 0]), constants.McBlockType.STONE, constants.DEFAULT_BLOCK_STATE, block_step_size)
+        self._add_blocks_in_dotted_line(para_corners[3].get_offset([0, 1, 0]), para_corners[0].get_offset([0, 1, 0]), constants.McBlockType.STONE, constants.DEFAULT_BLOCK_STATE, block_step_size)
         
-        # add pillars for the fire platform
+        # add pillars for the light/torch platform
         fire_platform_height = self.TOWER_HEIGHT + self.FIRE_PLATFORM_HEIGHT                        
         fire_platform_corners = []
         fire_platform_corners.append(tower_corners[0].get_offset([0, fire_platform_height, 0]))
@@ -249,11 +249,14 @@ class WatchTower(mc_utilities.McApiBuilder):
         self._add_blocks_in_line(tower_corners[2].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[2], constants.McBlockType.STONE)
         self._add_blocks_in_line(tower_corners[3].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[3], constants.McBlockType.STONE)
         
-        # add a base for the fire platform
+        # add a base for the light/torch platform
         self._add_blocks_in_cubeoid(fire_platform_corners[0], fire_platform_corners[2], constants.McBlockType.STONE)
         
-        # add fire
-        self._add_blocks_in_cubeoid(fire_platform_corners[0].get_offset([1, 1, -1]), fire_platform_corners[2].get_offset([-1, 1, 1]), constants.McBlockType.TORCH, True)
+        # add torches
+        self._add_blocks_in_line(fire_platform_corners[0].get_offset([0, 0, 1]), fire_platform_corners[1].get_offset([0, 0, 1]), constants.McBlockType.TORCH, constants.McTorchOrientation.SOUTH, True)
+        self._add_blocks_in_line(fire_platform_corners[1].get_offset([1, 0, 0]), fire_platform_corners[2].get_offset([1, 0, 0]), constants.McBlockType.TORCH, constants.McTorchOrientation.EAST, True)
+        self._add_blocks_in_line(fire_platform_corners[2].get_offset([0, 0, -1]), fire_platform_corners[3].get_offset([0, 0, -1]), constants.McBlockType.TORCH, constants.McTorchOrientation.NORTH, True)
+        self._add_blocks_in_line(fire_platform_corners[3].get_offset([-1, 0, 0]), fire_platform_corners[0].get_offset([-1, 0, 0]), constants.McBlockType.TORCH, constants.McTorchOrientation.WEST, True)
         
         # create the door
         door_location = tower_corners[0].get_offset([0, 0, -2])

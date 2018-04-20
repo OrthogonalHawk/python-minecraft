@@ -272,6 +272,29 @@ class McApiBuilder(object):
                     else:
                         self.final_build_steps.append(McApiSetBlockEvent(x_idx, y_idx, z_idx, block_type, self.DEFAULT_BLOCK_STATE))
         
+    def _add_random_blocks_in_cubeoid(self, pos_a, pos_b, block_type_list, final_build_steps = False):
+        """Alternate function to mcpi.minecraft setBlocks; allows the base class to track all
+            blocks added for a structure."""
+        x_start_idx, x_stop_idx = self._get_start_stop_idx(pos_a, pos_b, 0)
+        y_start_idx, y_stop_idx = self._get_start_stop_idx(pos_a, pos_b, 1)
+        z_start_idx, z_stop_idx = self._get_start_stop_idx(pos_a, pos_b, 2)
+        
+        for x_idx in range(x_start_idx, x_stop_idx):
+            for y_idx in range(y_start_idx, y_stop_idx):
+                for z_idx in range(z_start_idx, z_stop_idx):
+                
+                    next_block = random.choice(block_type_list)
+                    next_block_type = constants.McBlockType.AIR
+                    next_block_state = constants.DEFAULT_BLOCK_STATE
+                    if len(next_block) == 2:
+                        next_block_state = next_block[1]
+                    next_block_type = next_block[0]
+                    
+                    if not final_build_steps:
+                        self.build_steps.append(McApiSetBlockEvent(x_idx, y_idx, z_idx, next_block_type, next_block_state))
+                    else:
+                        self.final_build_steps.append(McApiSetBlockEvent(x_idx, y_idx, z_idx, next_block_type, next_block_state))
+                        
     def _add_build_steps(self, new_build_steps, final_build_steps = False):
         if not final_build_steps:
             self.build_steps += copy.deepcopy(new_build_steps)

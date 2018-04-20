@@ -91,6 +91,29 @@ class StackedFarm(BasicFarm):
         for i in range(num_stacks - 1):
             self._create_farm(mc_utilities.Location(anchor_corner.x, anchor_corner.y + self.STACK_SPACING * (i + 1), anchor_corner.z), x_dim, z_dim)
 
+class Pyramid(mc_utilities.McApiBuilder):
+
+    NAME = "Pyramid"
+    
+    def __init__(self, anchor_corner, block_type, size):
+        mc_utilities.McApiBuilder.__init__(self, self.NAME, anchor_corner)
+        self._create_pyramid(anchor_corner, block_type, size)
+        
+    def _create_pyramid(self, anchor_corner, block_type, size):
+    
+        logging.info("Creating %s at %s" % (self.NAME, anchor_corner))
+        
+        # verify that the size is an even number
+        if size % 2 != 0:
+            logging.warning("Unable to create pyramid of size %u; increasing to %u" % (size, size + 1))
+            size += 1
+            
+        corner_01 = copy.deepcopy(anchor_corner)
+        corner_02 = copy.deepcopy(anchor_corner.get_offset([size, 0, -size]))
+        
+        for offset in range(0, int((size / 2) + 1)):
+            self._add_blocks_in_cubeoid(corner_01.get_offset([offset, offset, -offset]), corner_02.get_offset([-offset, offset, offset]), block_type)
+        
 class StairComponent(mc_utilities.McApiBuilder):
 
     NAME = "StairComponent"
@@ -170,11 +193,11 @@ class WatchTower(mc_utilities.McApiBuilder):
     TOWER_HEIGHT = 12
     TOWER_WALL_WIDTH = 1
     
-    def __init__(self, anchor_corner):
+    def __init__(self, anchor_corner, block_type = constants.McBlockType.STONE):
         mc_utilities.McApiBuilder.__init__(self, self.NAME, anchor_corner)
-        self._create_watch_tower(anchor_corner)
+        self._create_watch_tower(anchor_corner, block_type)
         
-    def _create_watch_tower(self, anchor_corner):
+    def _create_watch_tower(self, anchor_corner, tower_block_type):
     
         logging.info("Building %s with anchor_corner=(%u, %u, %u)" %
             (self.NAME, anchor_corner.x, anchor_corner.y, anchor_corner.z))
@@ -187,17 +210,29 @@ class WatchTower(mc_utilities.McApiBuilder):
              
         # create the outer tower shell
         for y_idx in range(self.TOWER_HEIGHT):
-            self._add_blocks_in_line(tower_corners[0].get_offset([0, y_idx, 0]), tower_corners[1].get_offset([0, y_idx, 0]), constants.McBlockType.STONE)
-            self._add_blocks_in_line(tower_corners[1].get_offset([0, y_idx, 0]), tower_corners[2].get_offset([0, y_idx, 0]), constants.McBlockType.STONE)
-            self._add_blocks_in_line(tower_corners[2].get_offset([0, y_idx, 0]), tower_corners[3].get_offset([0, y_idx, 0]), constants.McBlockType.STONE)
-            self._add_blocks_in_line(tower_corners[3].get_offset([0, y_idx, 0]), tower_corners[0].get_offset([0, y_idx, 0]), constants.McBlockType.STONE)
+            self._add_blocks_in_line(tower_corners[0].get_offset([0, y_idx, 0]), tower_corners[1].get_offset([0, y_idx, 0]), tower_block_type)
+            self._add_blocks_in_line(tower_corners[1].get_offset([0, y_idx, 0]), tower_corners[2].get_offset([0, y_idx, 0]), tower_block_type)
+            self._add_blocks_in_line(tower_corners[2].get_offset([0, y_idx, 0]), tower_corners[3].get_offset([0, y_idx, 0]), tower_block_type)
+            self._add_blocks_in_line(tower_corners[3].get_offset([0, y_idx, 0]), tower_corners[0].get_offset([0, y_idx, 0]), tower_block_type)
         
         # create the tower floor
-        self._add_blocks_in_cubeoid(tower_corners[0].get_offset([0, -1, 0]), tower_corners[2].get_offset([0, -1, 0]), constants.McBlockType.STONE)
+        self._add_blocks_in_cubeoid(tower_corners[0].get_offset([0, -1, 0]), tower_corners[2].get_offset([0, -1, 0]), tower_block_type)
+        
+        # create a random outer facade
+        random_blocks = [(constants.McBlockType.GLASS, constants.McGlassColor.RED),
+                         (constants.McBlockType.GLASS, constants.McGlassColor.BLUE),
+                         (constants.McBlockType.GLASS, constants.McGlassColor.GREEN),
+                         (constants.McBlockType.GLASS, constants.McGlassColor.MAGENTA),
+                         (constants.McBlockType.GLASS, constants.McGlassColor.PINK),
+                         (constants.McBlockType.GLASS, constants.McGlassColor.ORANGE)]
+        self._add_random_blocks_in_cubeoid(tower_corners[0].get_offset([1, 0, 1]), tower_corners[1].get_offset([-1, self.TOWER_HEIGHT - 2, 1]), random_blocks)
+        self._add_random_blocks_in_cubeoid(tower_corners[1].get_offset([1, 0, -1]), tower_corners[2].get_offset([1, self.TOWER_HEIGHT - 2, 1]), random_blocks)
+        self._add_random_blocks_in_cubeoid(tower_corners[2].get_offset([-1, 0, -1]), tower_corners[3].get_offset([1, self.TOWER_HEIGHT - 2, -1]), random_blocks)
+        self._add_random_blocks_in_cubeoid(tower_corners[3].get_offset([-1, 3, 1]), tower_corners[0].get_offset([-1, self.TOWER_HEIGHT - 2, -1]), random_blocks)
         
         # create the inner column
         tower_center_at_base = tower_corners[0].get_offset([3, 0, -3])
-        self._add_blocks_in_line(tower_center_at_base, tower_center_at_base.get_offset([0, self.TOWER_HEIGHT-1, 0]), constants.McBlockType.STONE)
+        self._add_blocks_in_line(tower_center_at_base, tower_center_at_base.get_offset([0, self.TOWER_HEIGHT-1, 0]), tower_block_type)
         
         logging.info("Tower center at %s" % (tower_center_at_base))
         
@@ -209,10 +244,10 @@ class WatchTower(mc_utilities.McApiBuilder):
         # create a platform on top of the tower
         platform_height = self.TOWER_HEIGHT - 1
         for offset in range(1, self.PLATFORM_DEPTH):
-            self._add_blocks_in_line(tower_corners[0].get_offset([-offset, platform_height,  offset]), tower_corners[1].get_offset([ offset, platform_height,  offset]), constants.McBlockType.STONE)
-            self._add_blocks_in_line(tower_corners[1].get_offset([ offset, platform_height,  offset]), tower_corners[2].get_offset([ offset, platform_height, -offset]), constants.McBlockType.STONE)
-            self._add_blocks_in_line(tower_corners[2].get_offset([ offset, platform_height, -offset]), tower_corners[3].get_offset([-offset, platform_height, -offset]), constants.McBlockType.STONE)
-            self._add_blocks_in_line(tower_corners[3].get_offset([-offset, platform_height, -offset]), tower_corners[0].get_offset([-offset, platform_height,  offset]), constants.McBlockType.STONE)
+            self._add_blocks_in_line(tower_corners[0].get_offset([-offset, platform_height,  offset]), tower_corners[1].get_offset([ offset, platform_height,  offset]), tower_block_type)
+            self._add_blocks_in_line(tower_corners[1].get_offset([ offset, platform_height,  offset]), tower_corners[2].get_offset([ offset, platform_height, -offset]), tower_block_type)
+            self._add_blocks_in_line(tower_corners[2].get_offset([ offset, platform_height, -offset]), tower_corners[3].get_offset([-offset, platform_height, -offset]), tower_block_type)
+            self._add_blocks_in_line(tower_corners[3].get_offset([-offset, platform_height, -offset]), tower_corners[0].get_offset([-offset, platform_height,  offset]), tower_block_type)
         
         # add a parapet
         para_height = platform_height + 1
@@ -223,18 +258,24 @@ class WatchTower(mc_utilities.McApiBuilder):
         para_corners.append(tower_corners[2].get_offset([ para_offset, para_height, -para_offset]))
         para_corners.append(tower_corners[3].get_offset([-para_offset, para_height, -para_offset]))
         
+        # add a line of torches under the parapet
+        self._add_blocks_in_line(para_corners[0].get_offset([1, -1, 0]), para_corners[1].get_offset([-1, -1, 0]), constants.McBlockType.TORCH, constants.McTorchOrientation.SOUTH, True)
+        self._add_blocks_in_line(para_corners[1].get_offset([0, -1, -1]), para_corners[2].get_offset([0, -1, -1]), constants.McBlockType.TORCH, constants.McTorchOrientation.EAST, True)
+        self._add_blocks_in_line(para_corners[2].get_offset([-1, -1, 0]), para_corners[3].get_offset([1, -1, 0]), constants.McBlockType.TORCH, constants.McTorchOrientation.NORTH, True)
+        self._add_blocks_in_line(para_corners[3].get_offset([0, -1, 1]), para_corners[0].get_offset([0, -1, -1]), constants.McBlockType.TORCH, constants.McTorchOrientation.WEST, True)
+        
         # start with a line of blocks as an outline above the platform
-        self._add_blocks_in_line(para_corners[0], para_corners[1], constants.McBlockType.STONE)
-        self._add_blocks_in_line(para_corners[1], para_corners[2], constants.McBlockType.STONE)
-        self._add_blocks_in_line(para_corners[2], para_corners[3], constants.McBlockType.STONE)
-        self._add_blocks_in_line(para_corners[3], para_corners[0], constants.McBlockType.STONE)
+        self._add_blocks_in_line(para_corners[0], para_corners[1], tower_block_type)
+        self._add_blocks_in_line(para_corners[1], para_corners[2], tower_block_type)
+        self._add_blocks_in_line(para_corners[2], para_corners[3], tower_block_type)
+        self._add_blocks_in_line(para_corners[3], para_corners[0], tower_block_type)
 
         # now fill in every other block on the next level up
         block_step_size = 2
-        self._add_blocks_in_dotted_line(para_corners[0].get_offset([0, 1, 0]), para_corners[1].get_offset([0, 1, 0]), constants.McBlockType.STONE, constants.DEFAULT_BLOCK_STATE, block_step_size)
-        self._add_blocks_in_dotted_line(para_corners[1].get_offset([0, 1, 0]), para_corners[2].get_offset([0, 1, 0]), constants.McBlockType.STONE, constants.DEFAULT_BLOCK_STATE, block_step_size)
-        self._add_blocks_in_dotted_line(para_corners[2].get_offset([0, 1, 0]), para_corners[3].get_offset([0, 1, 0]), constants.McBlockType.STONE, constants.DEFAULT_BLOCK_STATE, block_step_size)
-        self._add_blocks_in_dotted_line(para_corners[3].get_offset([0, 1, 0]), para_corners[0].get_offset([0, 1, 0]), constants.McBlockType.STONE, constants.DEFAULT_BLOCK_STATE, block_step_size)
+        self._add_blocks_in_dotted_line(para_corners[0].get_offset([0, 1, 0]), para_corners[1].get_offset([0, 1, 0]), tower_block_type, constants.DEFAULT_BLOCK_STATE, block_step_size)
+        self._add_blocks_in_dotted_line(para_corners[1].get_offset([0, 1, 0]), para_corners[2].get_offset([0, 1, 0]), tower_block_type, constants.DEFAULT_BLOCK_STATE, block_step_size)
+        self._add_blocks_in_dotted_line(para_corners[2].get_offset([0, 1, 0]), para_corners[3].get_offset([0, 1, 0]), tower_block_type, constants.DEFAULT_BLOCK_STATE, block_step_size)
+        self._add_blocks_in_dotted_line(para_corners[3].get_offset([0, 1, 0]), para_corners[0].get_offset([0, 1, 0]), tower_block_type, constants.DEFAULT_BLOCK_STATE, block_step_size)
         
         # add pillars for the light/torch platform
         fire_platform_height = self.TOWER_HEIGHT + self.FIRE_PLATFORM_HEIGHT                        
@@ -244,19 +285,24 @@ class WatchTower(mc_utilities.McApiBuilder):
         fire_platform_corners.append(tower_corners[2].get_offset([0, fire_platform_height, 0]))
         fire_platform_corners.append(tower_corners[3].get_offset([0, fire_platform_height, 0]))
         
-        self._add_blocks_in_line(tower_corners[0].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[0], constants.McBlockType.STONE)
-        self._add_blocks_in_line(tower_corners[1].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[1], constants.McBlockType.STONE)
-        self._add_blocks_in_line(tower_corners[2].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[2], constants.McBlockType.STONE)
-        self._add_blocks_in_line(tower_corners[3].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[3], constants.McBlockType.STONE)
+        self._add_blocks_in_line(tower_corners[0].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[0], tower_block_type)
+        self._add_blocks_in_line(tower_corners[1].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[1], tower_block_type)
+        self._add_blocks_in_line(tower_corners[2].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[2], tower_block_type)
+        self._add_blocks_in_line(tower_corners[3].get_offset([0, self.TOWER_HEIGHT, 0]), fire_platform_corners[3], tower_block_type)
         
         # add a base for the light/torch platform
-        self._add_blocks_in_cubeoid(fire_platform_corners[0], fire_platform_corners[2], constants.McBlockType.STONE)
+        self._add_blocks_in_cubeoid(fire_platform_corners[0], fire_platform_corners[2], tower_block_type)
         
         # add torches
         self._add_blocks_in_line(fire_platform_corners[0].get_offset([0, 0, 1]), fire_platform_corners[1].get_offset([0, 0, 1]), constants.McBlockType.TORCH, constants.McTorchOrientation.SOUTH, True)
         self._add_blocks_in_line(fire_platform_corners[1].get_offset([1, 0, 0]), fire_platform_corners[2].get_offset([1, 0, 0]), constants.McBlockType.TORCH, constants.McTorchOrientation.EAST, True)
         self._add_blocks_in_line(fire_platform_corners[2].get_offset([0, 0, -1]), fire_platform_corners[3].get_offset([0, 0, -1]), constants.McBlockType.TORCH, constants.McTorchOrientation.NORTH, True)
         self._add_blocks_in_line(fire_platform_corners[3].get_offset([-1, 0, 0]), fire_platform_corners[0].get_offset([-1, 0, 0]), constants.McBlockType.TORCH, constants.McTorchOrientation.WEST, True)
+        
+        # add a "roof" above the light/torch platform
+        roof = Pyramid(fire_platform_corners[0].get_offset([-1, 1, 1]), constants.McBlockType.PRISMARINE, self.BASE_TOWER_DIM + 1)
+        self._add_build_steps(roof._get_build_events(), False)
+        self._add_build_steps(roof._get_final_build_events(), True)
         
         # create the door
         door_location = tower_corners[0].get_offset([0, 0, -2])

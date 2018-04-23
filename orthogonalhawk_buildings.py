@@ -91,6 +91,83 @@ class StackedFarm(BasicFarm):
         for i in range(num_stacks - 1):
             self._create_farm(mc_utilities.Location(anchor_corner.x, anchor_corner.y + self.STACK_SPACING * (i + 1), anchor_corner.z), x_dim, z_dim)
 
+class MineTunnel(mc_utilities.McApiBuilder):
+
+    NAME = "MineTunnel"
+    TORCH_INTERVAL = 3
+    TUNNEL_HEIGHT = 7
+    TUNNEL_WIDTH = 8
+    
+    def __init__(self, anchor_corner, length):
+        mc_utilities.McApiBuilder.__init__(self, self.NAME, anchor_corner)
+        self._create_mine_tunnel(anchor_corner, length)
+    
+    def _add_tunnel_base(self, anchor_corner, tunnel_segment_index):
+    
+        if tunnel_segment_index < 3 or tunnel_segment_index % 2 == 0:
+            rail_type = constants.McBlockType.POWERED_RAIL
+        else:
+            rail_type = constants.McBlockType.DETECTOR_RAIL
+        
+        self._add_generic_tunnel_base(anchor_corner, rail_type)
+        
+    def _add_generic_tunnel_base(self, anchor_corner, rail_type):
+        
+        logging.debug("Adding TunnelBase at %s" % (anchor_corner))
+            
+        self._add_block(anchor_corner.get_offset([1, 0, 0]), constants.McBlockType.STONE_BRICK_STAIRS, constants.McStairOrientation.SOUTH, True)
+        self._add_block(anchor_corner.get_offset([2, 0, 0]), rail_type, constants.DEFAULT_BLOCK_STATE, True)
+        self._add_block(anchor_corner.get_offset([3, 0, 0]), constants.McBlockType.STONE_BRICK_STAIRS, constants.McStairOrientation.SOUTH, True)
+        self._add_block(anchor_corner.get_offset([4, 0, 0]), constants.McBlockType.STONE_BRICK_STAIRS, constants.McStairOrientation.SOUTH, True)
+        self._add_block(anchor_corner.get_offset([5, 0, 0]), rail_type, constants.DEFAULT_BLOCK_STATE, True)
+        self._add_block(anchor_corner.get_offset([6, 0, 0]), constants.McBlockType.STONE_BRICK_STAIRS, constants.McStairOrientation.SOUTH, True)
+        
+    def _create_solid_tunnel_ring(self, anchor_corner, block_type, tunnel_segment_index):
+    
+        logging.info("Creating SolidTunnelRing at %s" % (anchor_corner))
+        
+        corners = self._get_tunnel_ring_corners(anchor_corner)
+        
+        # start by clearning any previous blocks from this volume
+        self._add_blocks_in_cubeoid(corners[0], corners[2], constants.McBlockType.AIR)
+        
+        # add a solid ring around the entire tunnel
+        self._add_blocks_in_line(corners[0], corners[1], block_type, constants.DEFAULT_BLOCK_STATE, True)
+        self._add_blocks_in_line(corners[1], corners[2], block_type, constants.DEFAULT_BLOCK_STATE, True)
+        self._add_blocks_in_line(corners[2], corners[3], block_type, constants.DEFAULT_BLOCK_STATE, True)
+        self._add_blocks_in_line(corners[3], corners[0], block_type, constants.DEFAULT_BLOCK_STATE, True)
+    
+        # add the generic tunnel base layer
+        self._add_tunnel_base(anchor_corner.get_offset([1, 1, 0]), tunnel_segment_index)
+        
+        # optionall add torches
+        if tunnel_segment_index % self.TORCH_INTERVAL == 0:
+            self._add_block(corners[3].get_offset([1, -1, 0]), constants.McBlockType.TORCH, constants.McTorchOrientation.EAST, True)
+            self._add_block(corners[2].get_offset([-1, -1, 0]), constants.McBlockType.TORCH, constants.McTorchOrientation.WEST, True)
+        
+    def _create_tunnel_ring_with_floor_only(self, anchor_corner, clear_first=True):
+    
+        logging.debug("Creating TunnelRingWithFloorOnly at %s" % (anchor_corner))
+        
+        
+    def _create_mine_tunnel(self, anchor_corner, length):
+        
+        anchor_corner = mc_utilities.Location(858, 68, 998)
+        logging.info("Creating %s at %s" % (self.NAME, anchor_corner))
+        
+        # create the outer tunnel ring
+        for tunnel_segment_idx in range(length):
+            self._create_solid_tunnel_ring(anchor_corner.get_offset([0, -tunnel_segment_idx, -tunnel_segment_idx]), constants.McBlockType.STONE, tunnel_segment_idx)
+    
+    def _get_tunnel_ring_corners(self, anchor_corner):
+        corners = []
+        corners.append(anchor_corner.get_offset([ 0,  0,  0]))
+        corners.append(anchor_corner.get_offset([ self.TUNNEL_WIDTH, 0, 0]))
+        corners.append(anchor_corner.get_offset([ self.TUNNEL_WIDTH, self.TUNNEL_HEIGHT, 0]))
+        corners.append(anchor_corner.get_offset([ 0, self.TUNNEL_HEIGHT, 0]))
+        
+        return corners
+        
 class Pyramid(mc_utilities.McApiBuilder):
 
     NAME = "Pyramid"

@@ -133,14 +133,16 @@ class McApiEventRunner(object):
     def __init__(self, mc_api_events):
         self.events = list(mc_api_events)
     
-    def run_events(self, mc_reference, initial_delay, animate = False):
+    def run_events(self, mc_reference, initial_delay, shuffle = False, animate = False):
         
         # wait before running events
         time.sleep(initial_delay)
         
         # run all events
         num_events_run = 0
-        random.shuffle(self.events)
+        
+        if shuffle:
+            random.shuffle(self.events)
                 
         for event in self.events:
             
@@ -164,12 +166,14 @@ class McApiBuilder(object):
 
     def __init__(self, building_name):
         self.name = building_name
+        self.init_steps = []
         self.build_steps = []
         self.final_build_steps = []
         self.anchor_corner = None
         
     def __init__(self, building_name, anchor_corner):
         self.name = building_name
+        self.init_steps = []
         self.build_steps = []
         self.final_build_steps = []
         self.anchor_corner = anchor_corner
@@ -328,12 +332,12 @@ class McApiBuilder(object):
         
         # add the basic build steps; fine if they occur in any order
         event_runner = McApiEventRunner(self._get_build_events())
-        event_runner.run_events(mc_reference, 0, animate)
+        event_runner.run_events(mc_reference, 0, True, animate)
         
         # now add any final build steps; guaranteed to occur last and
         #  in the order they were added to final_build_steps
         event_runner = McApiEventRunner(self._get_final_build_events())
-        event_runner.run_events(mc_reference, 0, animate)
+        event_runner.run_events(mc_reference, 0, False, animate)
     
     def rotate(self, num_degrees):
         num_degrees %= 360
